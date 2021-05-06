@@ -10,12 +10,12 @@ import javax.sql.DataSource
 @Configuration
 class BatisConfig {
     @Autowired
-    private var dataSourceProperties: DataSourceProperties? = null
+    private lateinit var dataSourceProperties: DataSourceProperties
 
     @Bean(name=["dataSource"])
-    public fun dataSource():DataSource{
+    fun dataSource():DataSource{
         val dataSource = SQLiteDataSource()
-        dataSource.url = dataSourceProperties?.url
+        dataSource.url = dataSourceProperties.url
         return dataSource
     }
 }

@@ -23,7 +23,10 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 	implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:2.1.4")
 	implementation("org.xerial","sqlite-jdbc","3.34.0")
-
+	implementation("org.usb4java","usb4java","1.3.0")
+	implementation("org.usb4java","usb4java-javax","1.3.0")
+	implementation("commons-codec","commons-codec","1.4")
+	implementation("com.igormaznitsa","jbbp","1.4.1")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }

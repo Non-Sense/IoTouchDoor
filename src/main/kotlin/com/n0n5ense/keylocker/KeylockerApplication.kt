@@ -9,5 +9,6 @@ import org.springframework.boot.runApplication
 class KeylockerApplication
 
 fun main(args: Array<String>) {
+	println("started")
 	runApplication<KeylockerApplication>(*args)
 }

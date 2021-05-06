@@ -15,4 +15,8 @@ class UserService @Autowired constructor(private val dao: UserMapper) {
     fun selectAll():List<UserModel>{
         return dao.selectAll()
     }
+
+    fun select(cardId:Long):UserModel?{
+        return dao.select(cardId)
+    }
 }

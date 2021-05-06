@@ -14,4 +14,7 @@ interface UserMapper {
 
     @Select("SELECT * FROM user")
     fun selectAll():List<UserModel>
+
+    @Select("SELECT * FROM user WHERE #{cardId}")
+    fun select(cardId:Long):UserModel?
 }
