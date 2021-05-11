@@ -26,20 +26,20 @@ class HomeController @Autowired constructor(val userService: UserService, val ca
         return felicaLogger.status()
     }
 
-    @RequestMapping("/new")
-    fun addUser(): ResponseEntity<UserModel>{
-        val id = "1FEDCBA987654321"
-        val name = "Unko"
+    @PostMapping("/user")
+    fun addUser(@RequestBody user: UserModel): ResponseEntity<UserModel>{
+        if(user.cardId.length != 16)
+            return ResponseEntity(null,HttpStatus.BAD_REQUEST)
         try {
-            userService.insert(UserModel(null, name, id, true))
+            userService.insert(user)
         } catch (e: UncategorizedSQLException){
             return ResponseEntity(null, HttpStatus.CONFLICT)
         }
-        userService.select(id).let {
+        userService.select(user.cardId).let {
             if(it!=null)
                 return ResponseEntity.ok(it)
-            return ResponseEntity(null, HttpStatus.INTERNAL_SERVER_ERROR)
         }
+        return ResponseEntity(null, HttpStatus.INTERNAL_SERVER_ERROR)
     }
 
     @RequestMapping("/users")
