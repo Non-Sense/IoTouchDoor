@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 @Mapper
 @Component
 interface UserMapper {
-    @Insert("INSERT INTO user(name, card_id, valid) VALUES(#{name}, #{cardId}, #{valid})")
+    @Insert("INSERT INTO user(name, card_id, enabled) VALUES(#{name}, #{cardId}, #{enabled})")
     fun insert(model:UserModel):Int
 
     @Select("SELECT * FROM user")
