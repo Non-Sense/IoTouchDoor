@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>user page</title>
+</head>
+<body>
+    <p>Hello!!!</p>
+    <!--/*@thymesVar id="userName" type="java.lang.String"*/-->
+    <p th:text="|name: ${userName}|"></p>
+
+    <form method="post" th:action="@{/logout}">
+        <input type="submit" value="logout">
+    </form>
+</body>
+</html>
