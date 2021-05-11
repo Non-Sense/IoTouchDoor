@@ -12,44 +12,35 @@ import java.util.Arrays;
 public class RCS380 {
     static int VENDOR_ID = 0x054C;
     static int PRODUCT_ID = 0x06C3;
-    private UsbDevice rcs380;
     private UsbPipe pipeIn;
     private UsbPipe pipeOut;
-    private UsbInterface iface;
-    private String manufacturer;
-    private String productName;
+    private final UsbInterface iface;
+    private final String manufacturer;
+    private final String productName;
 
     public RCS380() throws UsbException,UnsupportedEncodingException, DeviceNotFoundException {
-            UsbServices services = UsbHostManager.getUsbServices();
+        UsbServices services = UsbHostManager.getUsbServices();
 
-            UsbHub rootHub = services.getRootUsbHub();
-            rcs380 = this.findDevice(rootHub, RCS380.VENDOR_ID, RCS380.PRODUCT_ID);
+        UsbHub rootHub = services.getRootUsbHub();
+        UsbDevice rcs380 = this.findDevice(rootHub, RCS380.VENDOR_ID, RCS380.PRODUCT_ID);
 
-            if(rcs380==null)
-                throw new DeviceNotFoundException("Felica Device Not Found");
+        if(rcs380 ==null)
+            throw new DeviceNotFoundException("Felica Device Not Found");
 
-            this.manufacturer = rcs380.getManufacturerString();
-            this.productName = rcs380.getProductString();
+        this.manufacturer = rcs380.getManufacturerString();
+        this.productName = rcs380.getProductString();
 
-            UsbConfiguration configuration = (UsbConfiguration) rcs380.getUsbConfigurations().get(0);
-            this.iface = (UsbInterface) configuration.getUsbInterfaces().get(0);
+        UsbConfiguration configuration = (UsbConfiguration) rcs380.getUsbConfigurations().get(0);
+        this.iface = (UsbInterface) configuration.getUsbInterfaces().get(0);
 
 
-            UsbEndpoint endpointOut = null, endpointIn = null;
-            for (int i = 0; i < iface.getUsbEndpoints().size(); i++) {
-                byte endpointAddr = ((UsbEndpoint) (iface.getUsbEndpoints().get(i))).getUsbEndpointDescriptor().bEndpointAddress();
-                if (((endpointAddr & 0x80) == 0x80)) {
-                    endpointIn = (UsbEndpoint) (iface.getUsbEndpoints().get(i));
-                } else if ((endpointAddr & 0x80) == 0x00) {
-                    endpointOut = (UsbEndpoint) (iface.getUsbEndpoints().get(i));
-                }
-            }
-            //0x02 : OUT, 0x081 IN
-            endpointOut = iface.getUsbEndpoint((byte) 0x02);
-            endpointIn = iface.getUsbEndpoint((byte) 0x81);
+        UsbEndpoint endpointOut, endpointIn;
+        //0x02 : OUT, 0x081 IN
+        endpointOut = iface.getUsbEndpoint((byte) 0x02);
+        endpointIn = iface.getUsbEndpoint((byte) 0x81);
 
-            this.pipeOut = endpointOut.getUsbPipe();
-            this.pipeIn = endpointIn.getUsbPipe();
+        this.pipeOut = endpointOut.getUsbPipe();
+        this.pipeIn = endpointIn.getUsbPipe();
     }
 
     public void open() throws UsbException{
@@ -80,7 +71,6 @@ public class RCS380 {
     }
 
     public ByteBuffer sendCommand(UsbPipe pipeOut, UsbPipe pipeIn, byte commandCode, byte[] commandData) {
-        ByteBuffer ret;
         Frame frame;
         byte[] data = new byte[255];
         try {
@@ -92,9 +82,9 @@ public class RCS380 {
             if (frame.type.equals(Frame.TYPE_ACK)) {
                 data = new byte[255];
 
-                int received = pipeIn.syncSubmit(data);
+                pipeIn.syncSubmit(data);
                 frame = new Frame(data);
-                if (frame.data[0] == (byte) 0xD7 && frame.data[1] == (byte) commandCode + 1) {
+                if (frame.data[0] == (byte) 0xD7 && frame.data[1] == commandCode + 1) {
                     return ByteBuffer.wrap(Arrays.copyOfRange(frame.data, 2, frame.data.length));
                 }
             } else {
@@ -107,7 +97,7 @@ public class RCS380 {
         return null;
     }
 
-    public UsbDevice findDevice(UsbHub hub, int vendorId, int productId) throws UsbException, UnsupportedEncodingException {
+    public UsbDevice findDevice(UsbHub hub, int vendorId, int productId) {
         for (Object obj : hub.getAttachedUsbDevices()) {
             if(!(obj instanceof UsbDevice))
                 continue;

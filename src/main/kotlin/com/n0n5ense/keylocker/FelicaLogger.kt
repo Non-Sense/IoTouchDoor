@@ -22,11 +22,11 @@ class FelicaLogger @Autowired constructor(val userService: UserService, val card
     fun init(): ResponseEntity<String>{
         if(reader!=null)
             return ResponseEntity("""{"result":"already started"}""", HttpStatus.CONFLICT)
-        reader = FelicaReader().apply {
-            addCallback { idm, _ -> touch(idm) }
-            addOnClose { reader = null }
-        }
         try {
+            reader = FelicaReader().apply {
+                addCallback { idm, _ -> touch(idm) }
+                addOnClose { reader = null }
+            }
             reader?.openAndStart()
         } catch (e:Exception){
             try{
@@ -49,7 +49,7 @@ class FelicaLogger @Autowired constructor(val userService: UserService, val card
         val device:String? = if(reader==null)
             null
         else
-            """"${reader?.manufacturer} ${reader?.firmwareVersion}""""
+            """"${reader?.manufacturer} ${reader?.productName} ${reader?.firmwareVersion}""""
         val connected:Boolean = reader != null
         return """{"connected":$connected, "Device":$device}"""
     }

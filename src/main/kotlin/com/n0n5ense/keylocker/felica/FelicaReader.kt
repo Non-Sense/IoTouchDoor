@@ -9,7 +9,7 @@ import java.util.concurrent.Executors
 import javax.usb.UsbException
 import kotlin.collections.ArrayList
 
-class FelicaReader() {
+class FelicaReader {
 
     private val reader:RCS380 = RCS380()
 
@@ -17,10 +17,9 @@ class FelicaReader() {
 
     var firmwareVersion:String? = null
         private set
-    var pdDataVersion:String? = null
-        private set
-    val manufacturer = reader.manufacturer
-    val productName = reader.productName
+    private var pdDataVersion:String? = null
+    val manufacturer:String = reader.manufacturer
+    val productName:String = reader.productName
 
     private val interval:Long = 250
 

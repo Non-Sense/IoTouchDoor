@@ -8,8 +8,6 @@ import com.n0n5ense.keylocker.service.UserService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.jdbc.UncategorizedSQLException
-import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.*
 
 @RestController
