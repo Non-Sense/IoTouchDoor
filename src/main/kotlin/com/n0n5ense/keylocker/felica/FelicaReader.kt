@@ -2,12 +2,12 @@ package com.n0n5ense.keylocker.felica
 
 import jp.shanimnni.Chipset
 import jp.shanimnni.RCS380
-import org.apache.commons.codec.binary.Hex
 import java.nio.ByteBuffer
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import javax.usb.UsbException
+import kotlin.collections.ArrayList
 
 class FelicaReader() {
 
@@ -24,7 +24,21 @@ class FelicaReader() {
 
     private val interval:Long = 250
 
-    var callback:((idm:Long,pmm:Long)->Unit)? = null
+    private var callbacks:MutableList<((idm:String,pmm:String)->Unit)> = ArrayList()
+    private var onCloses:MutableList<(()->Unit)> = ArrayList()
+
+    fun addCallback(callback:(idm:String,pmm:String)->Unit){
+        this.callbacks.add(callback)
+    }
+    fun removeAllCallbacks(){
+        this.callbacks.clear()
+    }
+    fun addOnClose(callback:()->Unit){
+        this.onCloses.add(callback)
+    }
+    fun removeAllOnCloses(){
+        this.onCloses.clear()
+    }
 
     fun openAndStart(){
         open()
@@ -39,8 +53,13 @@ class FelicaReader() {
     }
 
     fun close(){
-        reader.close()
-        executor.shutdownNow()
+        try {
+            reader.close()
+        } catch (e:Exception){
+        } finally {
+            executor.shutdownNow()
+            onCloses.forEach { it() }
+        }
     }
 
     private fun preCommand(){
@@ -77,15 +96,18 @@ class FelicaReader() {
                         if(currentIdm==idm)
                             continue
                         idm = currentIdm
-                        callback?.invoke(
-                                idm,
-                                ByteBuffer.wrap(Arrays.copyOfRange(buf.array(), 15, 23)).long)
+                        val pmm = ByteBuffer.wrap(Arrays.copyOfRange(buf.array(), 15, 23)).long
+                        callbacks.forEach {
+                            it(String.format("%016X",idm), String.format("%016X",pmm))
+                        }
                     }
                     Thread.sleep(interval)
                 }
             } catch (e:InterruptedException){
                 close()
             } catch (e:UsbException){
+                close()
+            } catch (e:Exception){
                 close()
             }
         }

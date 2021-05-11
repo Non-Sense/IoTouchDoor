@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 @Mapper
 @Component
 interface CardTouchLogMapper {
-    @Insert("INSERT INTO touchLog(card_id, time) VALUES(#{cardId}, #{time})")
+    @Insert("INSERT INTO touchLog(card_id, time, accept) VALUES(#{cardId}, #{time}, #{accept})")
     fun insert(model: CardTouchLogModel): Int
 
     @Select("SELECT * FROM touchLog")

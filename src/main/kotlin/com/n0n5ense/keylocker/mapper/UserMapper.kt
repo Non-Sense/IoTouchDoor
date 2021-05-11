@@ -9,12 +9,12 @@ import org.springframework.stereotype.Component
 @Mapper
 @Component
 interface UserMapper {
-    @Insert("INSERT INTO user(name, card_id) VALUES(#{name}, #{cardId})")
+    @Insert("INSERT INTO user(name, card_id, valid) VALUES(#{name}, #{cardId}, #{valid})")
     fun insert(model:UserModel):Int
 
     @Select("SELECT * FROM user")
     fun selectAll():List<UserModel>
 
-    @Select("SELECT * FROM user WHERE #{cardId}")
-    fun select(cardId:Long):UserModel?
+    @Select("SELECT * FROM user WHERE card_id LIKE #{cardId}")
+    fun select(cardId:String):UserModel?
 }
