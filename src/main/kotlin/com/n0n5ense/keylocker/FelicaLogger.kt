@@ -5,14 +5,18 @@ import com.n0n5ense.keylocker.model.CardTouchLogModel
 import com.n0n5ense.keylocker.service.CardTouchLogService
 import com.n0n5ense.keylocker.service.UserService
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationListener
+import org.springframework.context.event.ContextClosedEvent
+import org.springframework.context.event.EventListener
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import java.time.ZonedDateTime
 import java.util.logging.Logger
+import javax.annotation.PreDestroy
 
 @Component
-class FelicaLogger @Autowired constructor(val userService: UserService, val cardTouchLogService: CardTouchLogService){
+class FelicaLogger @Autowired constructor(val userService: UserService, val cardTouchLogService: CardTouchLogService):ApplicationListener<ContextClosedEvent>{
     var reader:FelicaReader? = null
 
     fun init(): ResponseEntity<String>{
@@ -34,7 +38,9 @@ class FelicaLogger @Autowired constructor(val userService: UserService, val card
         return ResponseEntity("""{"result":"successful"}""", HttpStatus.OK)
     }
 
+    @PreDestroy
     fun close(){
+        Logger.getLogger("cardTouch").info("close")
         reader?.close()
         reader = null
     }
@@ -56,5 +62,10 @@ class FelicaLogger @Autowired constructor(val userService: UserService, val card
                 accept = true
         }
         cardTouchLogService.insert(CardTouchLogModel(cardId = idm, time = ZonedDateTime.now(),accept = accept))
+    }
+
+    @EventListener
+    override fun onApplicationEvent(event: ContextClosedEvent) {
+        close()
     }
 }
