@@ -9,10 +9,15 @@ import org.springframework.web.bind.annotation.RequestMapping
 @RequestMapping("/")
 class AppController {
     @RequestMapping("/userpage")
-    fun userpage(model: Model){
+    fun userPage(model: Model){
         val auth = SecurityContextHolder.getContext().authentication
         val name = auth.name
         model.addAttribute("userName",name)
         return
+    }
+
+    @RequestMapping("/touchlog")
+    fun touchLog(model: Model){
+
     }
 }

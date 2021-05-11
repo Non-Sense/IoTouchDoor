@@ -1,6 +1,7 @@
 package com.n0n5ense.keylocker
 
-import com.n0n5ense.keylocker.model.CardTouchLogModel
+import com.n0n5ense.keylocker.model.ColumnLimit
+import com.n0n5ense.keylocker.model.CardTouchLogViewModel
 import com.n0n5ense.keylocker.model.UserModel
 import com.n0n5ense.keylocker.service.CardTouchLogService
 import org.springframework.beans.factory.annotation.Autowired
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.jdbc.UncategorizedSQLException
 import org.springframework.web.bind.annotation.*
+import kotlin.math.min
 
 @RestController
 @RequestMapping("/api")
@@ -45,8 +47,9 @@ class RestApiController @Autowired constructor(val userService: UserService, val
         return ResponseEntity.ok(userService.selectAll())
     }
 
-    @RequestMapping("/logs")
-    fun addTouchLog(): ResponseEntity<List<CardTouchLogModel>>{
-        return ResponseEntity.ok(cardTouchLogService.selectAll())
+    @GetMapping("/logs")
+    fun addTouchLog(@RequestParam(name="l",required=false) limit: Int?, @RequestParam(name="o",required=false) offset:Int?): ResponseEntity<List<CardTouchLogViewModel>>{
+        val l = min(limit?:30,100)
+        return ResponseEntity.ok(cardTouchLogService.selectAll(ColumnLimit(l,offset?:0)))
     }
 }

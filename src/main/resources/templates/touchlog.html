@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <link href="css/icons.css" rel="stylesheet">
+    <link href="css/custom.css" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="css/materialize.min.css" media="screen,projection"/>
+
+    <meta charset="UTF-8" name="viewport" content="width=device-width,initial-scale=1">
+    <title>Touch Log</title>
+</head>
+<body>
+
+    <header>
+        <nav class="teal">
+            <div class="nav-wrapper">
+                <a class="brand-logo">Touch Log</a>
+                <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+                <ul class="right">
+                    <li>
+                        <form method="post" th:action="@{/logout}">
+                            <button class="white-text waves-effect waves-teal btn-flat" type="submit">Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <ul id="slide-out" class="sidenav sidenav-fixed">
+            <li><a href="/touchlog">Touch Log<i class="material-icons left">dvr</i></a></li>
+            <li><a href="#!">Card Management<i class="material-icons left">credit_card</i></a></li>
+        </ul>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="row">
+                <div class="col s12">
+                    <div id="logProgress" class="progress">
+                        <div class="indeterminate"></div>
+                    </div>
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Card ID</th>
+                            <th>Time</th>
+                            <th>Accept</th>
+                        </tr>
+                        </thead>
+                        <tbody id="logTable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/materialize.min.js"></script>
+    <script type="text/javascript" src="js/moment.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function (){
+            $('.sidenav').sidenav();
+            getTable();
+        });
+
+        function getTable(){
+            $('#logProgress').attr('class','visible')
+            $.get({
+                url: 'api/logs',
+                dataType: 'json',
+                timeout: 5000,
+            })
+            .done(dataUpdate)
+            .fail(()=>{
+                M.toast({html:'取得に失敗しました', classes:'red lighten-1'});
+            })
+            .always(()=>{
+                $('#logProgress').attr('class','invisible')
+            });
+        }
+
+        function dataUpdate(data){
+            const table = $('#logTable')
+            table.find('tr').remove()
+            for(const elm of data){
+                console.log(elm);
+                const time = moment(elm['time'])
+
+                const tr = $('<tr />')
+                    .append($('<td />').text(elm['name']))
+                    .append($('<td />').text(elm['cardId']))
+                    .append($('<td />').text(dateToString(time)));
+                if(elm['accept']){
+                    tr.append($('<td />').append($('<i />').attr('class','material-icons teal-text text-accent-4').text('check')));
+                }else{
+                    tr.append($('<td />').append($('<i />').attr('class','material-icons red-text text-accent-4').text('close')));
+                }
+
+                table.append(tr)
+            }
+        }
+
+        function dateToString(moment){
+            return  moment.format("YYYY-MM-DD HH:mm:ss (Z)");
+        }
+
+    </script>
+
+</body>
+</html>

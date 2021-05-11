@@ -2,6 +2,8 @@ package com.n0n5ense.keylocker.service
 
 import com.n0n5ense.keylocker.mapper.CardTouchLogMapper
 import com.n0n5ense.keylocker.model.CardTouchLogModel
+import com.n0n5ense.keylocker.model.ColumnLimit
+import com.n0n5ense.keylocker.model.CardTouchLogViewModel
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -13,7 +15,7 @@ class CardTouchLogService @Autowired constructor(private val dao: CardTouchLogMa
         return dao.insert(log) > 0
     }
 
-    fun selectAll():List<CardTouchLogModel>{
-        return dao.selectAll()
+    fun selectAll(limit:ColumnLimit):List<CardTouchLogViewModel>{
+        return dao.selectAll(limit)
     }
 }
