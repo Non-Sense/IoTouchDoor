@@ -19,6 +19,12 @@ import javax.annotation.PreDestroy
 class FelicaLogger @Autowired constructor(val userService: UserService, val cardTouchLogService: CardTouchLogService):ApplicationListener<ContextClosedEvent>{
     var reader:FelicaReader? = null
 
+    init {
+        Runtime.getRuntime().addShutdownHook(Thread{
+            this.close()
+        })
+    }
+
     fun init(): ResponseEntity<String>{
         if(reader!=null)
             return ResponseEntity("""{"result":"already started"}""", HttpStatus.CONFLICT)
@@ -40,6 +46,7 @@ class FelicaLogger @Autowired constructor(val userService: UserService, val card
 
     @PreDestroy
     fun close(){
+        Logger.getLogger("FelicaLogger").info("close")
         reader?.close()
         reader = null
     }
