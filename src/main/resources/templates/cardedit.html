@@ -90,8 +90,13 @@
                         </div>
                     </div>
                 </form>
-                <div class="row">
-                    <a onclick="addCard()" class="waves-effect waves-green btn right">追加</a>
+
+                <div class="modal-footer">
+                    <div class="row">
+                        <div class="right">
+                            <a onclick="addCard()" class="waves-effect waves-green btn right">追加</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -126,13 +131,15 @@
                     </div>
                 </form>
 
-                <div class="row">
-                    <br>
-                    <div class="col m2 s4 right">
-                        <a onclick="editCard()" class="waves-effect waves-green btn right">更新</a>
-                    </div>
-                    <div class="col m2 s4 right">
-                        <a onclick="deleteCard()" class="waves-effect waves-green btn right red">削除</a>
+
+                <div class="modal-footer">
+                    <div class="row">
+                        <div class="col m3 s5 right">
+                            <a onclick="editCard()" class="waves-effect waves-green btn right">更新</a>
+                        </div>
+                        <div class="col m3 s5 right">
+                            <a onclick="$('#modal3').modal('open')" class="waves-effect waves-green btn right red">削除</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -140,11 +147,21 @@
 
         <div id="modal3" class="modal">
             <div class="modal-content">
-                <h4>登録情報を削除します</h4>
-                <p>よろしいですか?</p>
-            </div>
-            <div class="modal-footer">
-                <a href="#!" class="modal-close waves-effect waves-green btn-flat">Agree</a>
+                <div class="row">
+                    <h4>登録情報を削除します</h4>
+                    <p><ruby>本<rt>ガ</rt>気<rt>チ</rt></ruby>ですか?</p>
+                </div>
+
+                <div class="modal-footer">
+                    <div class="row">
+                        <div class="col m3 s5 right">
+                            <a onclick="deleteCard()" class="modal-close waves-effect btn red">削除</a>
+                        </div>
+                        <div class="col m3 s5 left">
+                            <a class="modal-close waves-effect waves-green btn-flat left">もどる</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -181,6 +198,45 @@
             $('#name2').val(elm['name']);
             $('#id2').val(elm['id']);
             $('#modal2').modal('open');
+        }
+
+        function deleteCard(){
+            const name = $('#name2').val();
+            const id = $('#cardId2').val();
+            const chk = $('#chk2').prop("checked");
+            const postData = {"id":$('#id2').val(), "name":name, "cardId":id, "enabled":chk};
+            $('#addProg2').attr('class','visible')
+            $.ajax({
+                url: 'api/user',
+                dataType: 'json',
+                method: 'DELETE',
+                contentType: 'application/json',
+                timeout: 5000,
+                data: JSON.stringify(postData),
+                headers:{
+                    "[[${_csrf.headerName}]]":"[[${_csrf.token}]]"
+                }
+            })
+                .done(()=>{
+                    $('#modal2').modal('close');
+                    getTable();
+                })
+                .fail((xhr)=>{
+                    console.log(xhr)
+                    switch (xhr.status){
+                        case 400:
+                            errorToast("リクエストが不正です");
+                            break;
+                        case 404:
+                            errorToast("リクエストが不正です");
+                            break;
+                        default:
+                            errorToast('削除に失敗しました');
+                    }
+                })
+                .always(()=>{
+                    $('#addProg2').attr('class','invisible')
+                })
         }
 
         function editCard(){

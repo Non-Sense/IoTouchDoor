@@ -57,6 +57,15 @@ class RestApiController @Autowired constructor(val userService: UserService, val
         }
     }
 
+    @DeleteMapping("/user")
+    fun deleteUser(@RequestBody user: UserModel):ResponseEntity<Unit>{
+        userService.delete(user).let {
+            if(!it)
+                return ResponseEntity(null,HttpStatus.NOT_FOUND)
+            return ResponseEntity(null,HttpStatus.NO_CONTENT)
+        }
+    }
+
     @GetMapping("/user")
     fun findUser(@RequestParam(name="q",required = true)id:String): ResponseEntity<UserModel>{
         if(id.length != 16)

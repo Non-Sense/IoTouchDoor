@@ -23,4 +23,8 @@ class UserService @Autowired constructor(private val dao: UserMapper) {
     fun update(user:UserModel):Boolean{
         return dao.update(user)
     }
+
+    fun delete(user:UserModel):Boolean{
+        return dao.delete(user)
+    }
 }

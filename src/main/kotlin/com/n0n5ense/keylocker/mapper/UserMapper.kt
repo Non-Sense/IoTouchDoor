@@ -1,10 +1,7 @@
 package com.n0n5ense.keylocker.mapper
 
 import com.n0n5ense.keylocker.model.UserModel
-import org.apache.ibatis.annotations.Insert
-import org.apache.ibatis.annotations.Mapper
-import org.apache.ibatis.annotations.Select
-import org.apache.ibatis.annotations.Update
+import org.apache.ibatis.annotations.*
 import org.springframework.stereotype.Component
 
 @Mapper
@@ -21,4 +18,7 @@ interface UserMapper {
 
     @Update("UPDATE user SET name = #{name}, enabled = #{enabled} WHERE id == #{id} AND card_id == #{cardId}")
     fun update(userModel: UserModel):Boolean
+
+    @Delete("DELETE FROM user WHERE id == #{id} AND card_id == #{cardId}")
+    fun delete(userModel: UserModel):Boolean
 }

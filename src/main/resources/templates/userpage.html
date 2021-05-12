@@ -70,8 +70,8 @@
                 <div class="col s12 m6">
                     <div class="card teal lighten-5">
                         <div class="card-content black-text">
-                            <span class="card-title">Door</span>
-                            <p>閉じています</p>
+                            <span class="card-title">ちっちゃいタッチログ入れたい</span>
+                            <p>ｽﾞﾗｰｰ</p>
                         </div>
                         <div class="card-action">
                             <a href="#">Refresh</a>
@@ -123,11 +123,17 @@
                 dataType: 'json',
                 timeout: 5000,
             })
-            .done((data)=>{
+            .done(()=>{
                 updateReaderStatus(true);
             })
-            .fail(()=>{
-                errorToast('リーダ接続に失敗しました');
+            .fail((xhr)=>{
+                switch (xhr.status){
+                    case 409:
+                        errorToast("接続済みです");
+                        break;
+                    default:
+                        errorToast('リーダ接続に失敗しました');
+                }
             });
         }
 
