@@ -40,13 +40,18 @@
         </div>
     </div>
 
+
+    <script type="text/javascript" src="js/jquery.min.js"></script>
     <script type="text/javascript" src="js/materialize.min.js"></script>
-    <div th:if="${param.error}">
-        <script type="text/javascript">M.toast({html:'ログインに失敗しました', classes:'red lighten-1'});</script>
-    </div>
-    <div th:if="${param.logout}">
-        <script type="text/javascript">M.toast({html:'ログアウトしました', classes:'red lighten-1'});</script>
-    </div>
+    <script type="text/javascript" src="js/helper.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function (){
+            if(getParam('error')!=null)
+                errorToast("ログインに失敗しました");
+            if(getParam('logout')!=null)
+                toast('ログアウトしました')
+        });
+    </script>
 
 </div>
 </body>

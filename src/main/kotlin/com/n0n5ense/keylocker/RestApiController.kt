@@ -48,7 +48,26 @@ class RestApiController @Autowired constructor(val userService: UserService, val
         return ResponseEntity(null, HttpStatus.INTERNAL_SERVER_ERROR)
     }
 
-    @RequestMapping("/users")
+    @PutMapping("/user")
+    fun editUser(@RequestBody user: UserModel):ResponseEntity<UserModel>{
+        userService.update(user).let {
+            if(!it)
+                return ResponseEntity(null,HttpStatus.BAD_REQUEST)
+            return ResponseEntity.ok(user)
+        }
+    }
+
+    @GetMapping("/user")
+    fun findUser(@RequestParam(name="q",required = true)id:String): ResponseEntity<UserModel>{
+        if(id.length != 16)
+            return ResponseEntity(null, HttpStatus.NOT_FOUND)
+        val user = userService.select(id)
+        if(user==null)
+            return ResponseEntity(null, HttpStatus.NOT_FOUND)
+        return ResponseEntity.ok(user)
+    }
+
+    @GetMapping("/users")
     fun getUsers(): ResponseEntity<List<UserModel>>{
         return ResponseEntity.ok(userService.selectAll())
     }

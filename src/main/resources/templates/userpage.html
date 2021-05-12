@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
 <head>
-
     <link href="css/icons.css" rel="stylesheet">
     <link href="css/custom.css" rel="stylesheet">
     <link type="text/css" rel="stylesheet" href="css/materialize.min.css" media="screen,projection"/>
@@ -14,7 +13,7 @@
     <header>
         <nav class="teal">
             <div class="nav-wrapper">
-                <a class="brand-logo">Dashboard</a>
+                <a href="/userpage" class="brand-logo">Dashboard</a>
                 <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>
                 <ul class="right">
                     <li>
@@ -27,8 +26,9 @@
         </nav>
 
         <ul id="slide-out" class="sidenav sidenav-fixed">
+            <li><a href="/userpage">Dash Board<i class="material-icons left">dashboard</i></a></li>
             <li><a href="/touchlog">Touch Log<i class="material-icons left">dvr</i></a></li>
-            <li><a href="#!">Card Management<i class="material-icons left">credit_card</i></a></li>
+            <li><a href="/cardedit">Card Management<i class="material-icons left">credit_card</i></a></li>
         </ul>
     </header>
 
@@ -36,15 +36,116 @@
         <!--    <p>Hello!!!</p>-->
         <!--    &lt;!&ndash;/*@thymesVar id="userName" type="java.lang.String"*/&ndash;&gt;-->
         <!--    <p th:text="|name: ${userName}|"></p>-->
+
+        <div class="container">
+            <div class="row">
+                <div class="col s12 m6">
+                    <div class="card teal lighten-5" id="reader_card">
+                        <div class="card-content black-text">
+                            <span class="card-title">リーダ接続</span>
+                            <p id="reader_connect">接続されていません</p>
+                        </div>
+                        <div class="card-action">
+                            <a href="#" onclick="updateReaderStatus()">Refresh</a>
+                            <a href="#" onclick="connectReader()">Connect</a>
+                            <a href="#" onclick="closeReader()">Close</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col s12 m6">
+                    <div class="card teal lighten-5">
+                        <div class="card-content black-text">
+                            <span class="card-title">物理状態</span>
+                            <p>ドア:CLOSED</p>
+                            <p>カギ:LOCKED</p>
+                        </div>
+                        <div class="card-action">
+                            <a href="#">Refresh</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s12 m6">
+                    <div class="card teal lighten-5">
+                        <div class="card-content black-text">
+                            <span class="card-title">Door</span>
+                            <p>閉じています</p>
+                        </div>
+                        <div class="card-action">
+                            <a href="#">Refresh</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
     </main>
 
 
     <script type="text/javascript" src="js/jquery.min.js"></script>
     <script type="text/javascript" src="js/materialize.min.js"></script>
+    <script type="text/javascript" src="js/helper.js"></script>
     <script type="text/javascript">
         $(document).ready(function(){
             $('.sidenav').sidenav();
+            updateReaderStatus(true);
         });
+
+        function updateReaderStatus(flag=null){
+            $.get({
+                url: 'api/status',
+                dataType: 'json',
+                timeout: 5000,
+            })
+            .done((data)=>{
+                if(data['connected']){
+                    $('#reader_connect').html($('<dummy>').text("接続されています\n"+data['device']).html().replace(/\n/g, '<br>'));
+                    $('#reader_card').attr('class','card teal lighten-5');
+                } else {
+                    $('#reader_connect').html("接続されていません");
+                    $('#reader_card').attr('class','card deep-orange lighten-5');
+                }
+                if(flag==null)
+                    toast("更新しました");
+            })
+            .fail(()=>{
+                errorToast('取得に失敗しました');
+                $('#reader_card').attr('class','card deep-orange lighten-5');
+            });
+        }
+
+        function connectReader(){
+            $.get({
+                url: 'api/start',
+                dataType: 'json',
+                timeout: 5000,
+            })
+            .done((data)=>{
+                updateReaderStatus(true);
+            })
+            .fail(()=>{
+                errorToast('リーダ接続に失敗しました');
+            });
+        }
+
+        function closeReader(){
+            $.get({
+                url: 'api/close',
+                dataType: 'json',
+                timeout: 5000,
+            })
+            .done(()=>{})
+            .fail(()=>{
+                errorToast('接続解除に失敗しました');
+            })
+            .always(()=>{
+                updateReaderStatus(true);
+            });
+        }
+
     </script>
 </body>
 </html>

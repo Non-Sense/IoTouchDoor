@@ -13,7 +13,7 @@
     <header>
         <nav class="teal">
             <div class="nav-wrapper">
-                <a class="brand-logo">Touch Log</a>
+                <a href="/userpage" class="brand-logo">Touch Log</a>
                 <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>
                 <ul class="right">
                     <li>
@@ -26,8 +26,9 @@
         </nav>
 
         <ul id="slide-out" class="sidenav sidenav-fixed">
+            <li><a href="/userpage">Dash Board<i class="material-icons left">dashboard</i></a></li>
             <li><a href="/touchlog">Touch Log<i class="material-icons left">dvr</i></a></li>
-            <li><a href="#!">Card Management<i class="material-icons left">credit_card</i></a></li>
+            <li><a href="/cardedit">Card Management<i class="material-icons left">credit_card</i></a></li>
         </ul>
     </header>
 
@@ -38,7 +39,7 @@
                     <div id="logProgress" class="progress">
                         <div class="indeterminate"></div>
                     </div>
-                    <table>
+                    <table class="highlight">
                         <thead>
                         <tr>
                             <th>Name</th>
@@ -59,6 +60,7 @@
     <script type="text/javascript" src="js/jquery.min.js"></script>
     <script type="text/javascript" src="js/materialize.min.js"></script>
     <script type="text/javascript" src="js/moment.min.js"></script>
+    <script type="text/javascript" src="js/helper.js"></script>
 
     <script type="text/javascript">
         $(document).ready(function (){
@@ -75,7 +77,7 @@
             })
             .done(dataUpdate)
             .fail(()=>{
-                M.toast({html:'取得に失敗しました', classes:'red lighten-1'});
+                errorToast('取得に失敗しました');
             })
             .always(()=>{
                 $('#logProgress').attr('class','invisible')
@@ -86,13 +88,16 @@
             const table = $('#logTable')
             table.find('tr').remove()
             for(const elm of data){
-                console.log(elm);
                 const time = moment(elm['time'])
-
-                const tr = $('<tr />')
-                    .append($('<td />').text(elm['name']))
-                    .append($('<td />').text(elm['cardId']))
-                    .append($('<td />').text(dateToString(time)));
+                const tr = $('<tr />');
+                tr.append($('<td />').attr('class','hide').text(elm['id']))
+                if(elm['name'] == null && !elm['accept']){
+                    tr.append($('<td />').append($('<a />').attr('href','/cardedit?id='+elm['cardId']).text('Add this')));
+                } else {
+                    tr.append($('<td />').text(elm['name']));
+                }
+                tr.append($('<td />').text(elm['cardId']));
+                tr.append($('<td />').text(dateToString(time)));
                 if(elm['accept']){
                     tr.append($('<td />').append($('<i />').attr('class','material-icons teal-text text-accent-4').text('check')));
                 }else{

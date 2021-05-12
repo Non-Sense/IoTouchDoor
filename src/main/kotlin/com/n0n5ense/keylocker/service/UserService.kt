@@ -19,4 +19,8 @@ class UserService @Autowired constructor(private val dao: UserMapper) {
     fun select(cardId:String):UserModel?{
         return dao.select(cardId)
     }
+
+    fun update(user:UserModel):Boolean{
+        return dao.update(user)
+    }
 }

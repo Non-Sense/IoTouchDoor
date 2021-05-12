@@ -18,6 +18,9 @@ class AppController {
 
     @RequestMapping("/touchlog")
     fun touchLog(model: Model){
+    }
 
+    @RequestMapping("/cardedit")
+    fun cardEdit(model: Model){
     }
 }

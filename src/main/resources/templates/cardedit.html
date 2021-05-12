@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <link href="css/icons.css" rel="stylesheet">
+    <link href="css/custom.css" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="css/materialize.min.css" media="screen,projection"/>
+
+    <meta charset="UTF-8" name="viewport" content="width=device-width,initial-scale=1">
+    <title>Card Management</title>
+</head>
+<body>
+
+    <header>
+        <nav class="teal">
+            <div class="nav-wrapper">
+                <a href="/userpage" class="brand-logo hide-on-small-and-down">Card Management</a>
+                <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+                <ul class="right">
+                    <li>
+                        <form method="post" th:action="@{/logout}">
+                            <button class="white-text waves-effect waves-teal btn-flat" type="submit">Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <ul id="slide-out" class="sidenav sidenav-fixed">
+            <li><a href="/userpage">Dash Board<i class="material-icons left">dashboard</i></a></li>
+            <li><a href="/touchlog">Touch Log<i class="material-icons left">dvr</i></a></li>
+            <li><a href="/cardedit">Card Management<i class="material-icons left">credit_card</i></a></li>
+        </ul>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="row">
+                <div class="col s12">
+                    <br>
+                    <a class="waves-effect waves-light btn" onclick="showAddCardDialog(null)"><i class="material-icons left">add</i>カード追加</a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s12">
+                    <div id="logProgress" class="progress">
+                        <div class="indeterminate"></div>
+                    </div>
+                    <table class="highlight">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Card ID</th>
+                            <th>Enable</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody id="logTable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="modal" class="modal">
+            <div id="addProg" class="progress hide">
+                <div class="indeterminate"></div>
+            </div>
+            <div class="modal-content">
+                <h4>カード追加</h4>
+                <form>
+                    <div class="row">
+                        <div class="input-field col s12">
+                            <input class="validate" pattern="^[a-zA-Z0-9]{16}$" required placeholder="012345689ABCDEF0" id="cardId" type="text">
+                            <label for="cardId">FeliCa IDm</label>
+                            <span class="helper-text" data-error="正しい値を入力してください ^[a-zA-Z0-9]{16}$"></span>
+                        </div>
+                        <div class="input-field col s12">
+                            <input id="name" type="text">
+                            <label for="name">Name</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="switch">
+                            <label>
+                                Disable
+                                <input id="chk" type="checkbox">
+                                <span class="lever"></span>
+                                Enable
+                            </label>
+                        </div>
+                    </div>
+                </form>
+                <div class="row">
+                    <a onclick="addCard()" class="waves-effect waves-green btn right">追加</a>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="modal2" class="modal">
+            <div id="addProg2" class="progress hide">
+                <div class="indeterminate"></div>
+            </div>
+            <div class="modal-content">
+                <h4>カード編集</h4>
+                <form>
+                    <div class="row">
+                        <div class="input-field col s12">
+                            <input class="validate" pattern="^[a-zA-Z0-9]{16}$" required placeholder="012345689ABCDEF0" id="cardId2" type="text">
+                            <label for="cardId2">FeliCa IDm</label>
+                            <span class="helper-text" data-error="正しい値を入力してください ^[a-zA-Z0-9]{16}$"></span>
+                        </div>
+                        <label class="hide" for="id2"></label><input id="id2" type="text" class="hide">
+                        <div class="input-field col s12">
+                            <input id="name2" type="text" placeholder=" ">
+                            <label for="name2">Name</label>
+                        </div>
+                        <div class="switch">
+                            <label>
+                                Disable
+                                <input id="chk2" type="checkbox">
+                                <span class="lever"></span>
+                                Enable
+                            </label>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="row">
+                    <br>
+                    <div class="col m2 s4 right">
+                        <a onclick="editCard()" class="waves-effect waves-green btn right">更新</a>
+                    </div>
+                    <div class="col m2 s4 right">
+                        <a onclick="deleteCard()" class="waves-effect waves-green btn right red">削除</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="modal3" class="modal">
+            <div class="modal-content">
+                <h4>登録情報を削除します</h4>
+                <p>よろしいですか?</p>
+            </div>
+            <div class="modal-footer">
+                <a href="#!" class="modal-close waves-effect waves-green btn-flat">Agree</a>
+            </div>
+        </div>
+
+    </main>
+
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/materialize.min.js"></script>
+    <script type="text/javascript" src="js/helper.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function (){
+            $('.modal').modal();
+            $('.sidenav').sidenav();
+            getTable();
+            const p = getParam('id');
+            if(p!=null)
+                showAddCardDialog(p)
+        });
+
+        function showAddCardDialog(cardId){
+            if(cardId==null){
+                $('#cardId').val("");
+            } else {
+                $('#cardId').val(cardId);
+            }
+            $('#name').val("").prop('disabled',false);
+            $('#chk').prop('checked',true);
+            $('#modal').modal('open');
+        }
+
+        function showEditCardDialog(elm){
+            $('#chk2').prop('checked',elm['enabled']);
+            $('#cardId2').val(elm['cardId']).prop('disabled',true);
+            $('#name2').val(elm['name']);
+            $('#id2').val(elm['id']);
+            $('#modal2').modal('open');
+        }
+
+        function editCard(){
+            const name = $('#name2').val();
+            const id = $('#cardId2').val();
+            const chk = $('#chk2').prop("checked");
+            const postData = {"id":$('#id2').val(), "name":name, "cardId":id, "enabled":chk};
+            $('#addProg2').attr('class','visible')
+            $.ajax({
+                url: 'api/user',
+                dataType: 'json',
+                method: 'PUT',
+                contentType: 'application/json',
+                timeout: 5000,
+                data: JSON.stringify(postData),
+                headers:{
+                    "[[${_csrf.headerName}]]":"[[${_csrf.token}]]"
+                }
+            })
+                .done(()=>{
+                    $('#modal2').modal('close');
+                    getTable();
+                })
+                .fail((xhr)=>{
+                    console.log(xhr)
+                    switch (xhr.status){
+                        case 400:
+                            errorToast("リクエストが不正です");
+                            break;
+                        default:
+                            errorToast('編集に失敗しました');
+                    }
+                })
+                .always(()=>{
+                    $('#addProg2').attr('class','invisible')
+                })
+        }
+
+        function addCard(){
+            const name = $('#name').val();
+            const id = $('#cardId').val();
+            const chk = $('#chk').prop("checked");
+            const postData = {"id":null, "name":name, "cardId":id, "enabled":chk};
+            $('#addProg').attr('class','visible')
+            $.post({
+                url: 'api/user',
+                dataType: 'json',
+                contentType: 'application/json',
+                timeout: 5000,
+                data: JSON.stringify(postData),
+                headers:{
+                    "[[${_csrf.headerName}]]":"[[${_csrf.token}]]"
+                }
+            })
+            .done(()=>{
+                $('#modal').modal('close');
+                getTable();
+            })
+            .fail((xhr)=>{
+                console.log(xhr)
+                switch (xhr.status){
+                    case 400:
+                        errorToast("リクエストが不正です");
+                        break;
+                    case 409:
+                        errorToast("同じIDのカードがすでに登録されています");
+                        break;
+                    default:
+                        errorToast('追加に失敗しました');
+                }
+            })
+            .always(()=>{
+                $('#addProg').attr('class','invisible')
+            })
+        }
+
+        function getTable(){
+            $('#logProgress').attr('class','visible')
+            $.get({
+                url: 'api/users',
+                dataType: 'json',
+                timeout: 5000,
+            })
+                .done(dataUpdate)
+                .fail(()=>{
+                    errorToast('取得に失敗しました');
+                })
+                .always(()=>{
+                    $('#logProgress').attr('class','invisible')
+                });
+        }
+
+        function dataUpdate(data){
+            const table = $('#logTable')
+            table.find('tr').remove()
+            for(const elm of data){
+                console.log(elm);
+
+                const tr = $('<tr />')
+                    .append($('<td />').text(elm['id']).attr('class','hide'))
+                    .append($('<td />').text(elm['name']))
+                    .append($('<td />').text(elm['cardId']));
+                if(elm['enabled']){
+                    tr.append($('<td />').append($('<i />').attr('class','material-icons teal-text text-accent-4').text('check')));
+                }else{
+                    tr.append($('<td />').append($('<i />').attr('class','material-icons red-text text-accent-4').text('close')));
+                }
+                tr.append($('<td />')
+                    .append($('<a />').attr("href","#").on("click",function (){showEditCardDialog(elm)})
+                    .append($('<i />').attr('class','material-icons').text('edit'))));
+
+                table.append(tr)
+            }
+        }
+
+    </script>
+</body>
+</html>
