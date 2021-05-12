@@ -21,6 +21,12 @@ class RestApiController @Autowired constructor(val userService: UserService, val
         return felicaLogger.init()
     }
 
+    @RequestMapping("/close")
+    fun close(): ResponseEntity<Unit>{
+        felicaLogger.close()
+        return ResponseEntity(null,HttpStatus.NO_CONTENT)
+    }
+
     @RequestMapping("/status")
     fun status(): String{
         return felicaLogger.status()

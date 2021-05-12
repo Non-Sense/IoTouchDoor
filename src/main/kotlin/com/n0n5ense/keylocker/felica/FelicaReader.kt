@@ -52,11 +52,14 @@ class FelicaReader {
     }
 
     fun close(){
+        if(executor.isShutdown)
+            return
+        executor.shutdownNow()
         try {
             reader.close()
         } catch (e:Exception){
+            e.printStackTrace()
         } finally {
-            executor.shutdownNow()
             onCloses.forEach { it() }
         }
     }

@@ -32,7 +32,8 @@ public class Frame {
                 this.type = jp.shanimnni.Frame.TYPE_DATA;
             }
 
-            if (this.type == jp.shanimnni.Frame.TYPE_DATA) {
+            assert this.type != null;
+            if (this.type.equals(Frame.TYPE_DATA)) {
                 ByteBuffer buf = ByteBuffer.wrap(Arrays.copyOfRange(this.frame, 5, 7));
                 buf.order(ByteOrder.LITTLE_ENDIAN);
                 int length = buf.getShort();

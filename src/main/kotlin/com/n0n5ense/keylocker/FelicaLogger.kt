@@ -40,7 +40,6 @@ class FelicaLogger @Autowired constructor(val userService: UserService, val card
 
     @PreDestroy
     fun close(){
-        Logger.getLogger("cardTouch").info("close")
         reader?.close()
         reader = null
     }
@@ -51,7 +50,7 @@ class FelicaLogger @Autowired constructor(val userService: UserService, val card
         else
             """"${reader?.manufacturer} ${reader?.productName} ${reader?.firmwareVersion}""""
         val connected:Boolean = reader != null
-        return """{"connected":$connected, "Device":$device}"""
+        return """{"connected":$connected, "device":$device}"""
     }
 
     private fun touch(idm:String){

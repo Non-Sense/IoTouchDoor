@@ -34,7 +34,16 @@ public class RCS380 {
         this.iface = (UsbInterface) configuration.getUsbInterfaces().get(0);
 
 
-        UsbEndpoint endpointOut, endpointIn;
+        UsbEndpoint endpointOut = null, endpointIn = null;
+        for (int i = 0; i < iface.getUsbEndpoints().size(); i++) {
+            byte endpointAddr = (byte) ((UsbEndpoint) (iface.getUsbEndpoints().get(i))).getUsbEndpointDescriptor().bEndpointAddress();
+            if (((endpointAddr & 0x80) == 0x80)) {
+                endpointIn = (UsbEndpoint) (iface.getUsbEndpoints().get(i));
+            } else if ((endpointAddr & 0x80) == 0x00) {
+                endpointOut = (UsbEndpoint) (iface.getUsbEndpoints().get(i))
+                ;
+            }
+        }
         //0x02 : OUT, 0x081 IN
         endpointOut = iface.getUsbEndpoint((byte) 0x02);
         endpointIn = iface.getUsbEndpoint((byte) 0x81);
@@ -51,6 +60,9 @@ public class RCS380 {
     }
 
     public void close() throws UsbException{
+        this.pipeOut.abortAllSubmissions();
+        sendCommand(Chipset.CMD_SWITCH_RF,new byte[]{0});
+        this.pipeOut.syncSubmit(Frame.ACK);
         this.pipeIn.close();
         this.pipeOut.close();
         this.iface.release();
