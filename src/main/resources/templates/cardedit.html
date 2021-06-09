@@ -175,6 +175,7 @@
         $(document).ready(function (){
             $('.modal').modal();
             $('.sidenav').sidenav();
+            $('.tooltipped').tooltip();
             getTable();
             const p = getParam('id');
             if(p!=null)
@@ -345,11 +346,11 @@
                     tr.append($('<td />').append($('<i />').attr('class','material-icons red-text text-accent-4').text('close')));
                 }
                 tr.append($('<td />')
-                    .append($('<a />').attr("href","#").on("click",function (){showEditCardDialog(elm)})
+                    .append($('<a />').attr("href","#!").attr('class','tooltipped').attr('data-tooltip','編集').attr('data-position','right').on("click",function (){showEditCardDialog(elm)})
                     .append($('<i />').attr('class','material-icons').text('edit'))));
-
                 table.append(tr)
             }
+            $('.tooltipped').tooltip();
         }
 
     </script>

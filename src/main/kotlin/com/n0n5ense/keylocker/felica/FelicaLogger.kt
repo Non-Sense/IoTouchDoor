@@ -1,6 +1,5 @@
-package com.n0n5ense.keylocker
+package com.n0n5ense.keylocker.felica
 
-import com.n0n5ense.keylocker.felica.FelicaReader
 import com.n0n5ense.keylocker.model.CardTouchLogModel
 import com.n0n5ense.keylocker.service.CardTouchLogService
 import com.n0n5ense.keylocker.service.UserService

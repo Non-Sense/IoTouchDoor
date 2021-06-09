@@ -93,23 +93,26 @@ class FelicaReader {
                         continue
                     }
                     //Type-F
-                    if (buf.get(5).toInt() == 0x14 && buf.get(6).toInt() == 0x01) {
-                        val currentIdm=ByteBuffer.wrap(Arrays.copyOfRange(buf.array(), 7, 15)).long
-                        if(currentIdm==idm)
-                            continue
-                        idm = currentIdm
-                        val pmm = ByteBuffer.wrap(Arrays.copyOfRange(buf.array(), 15, 23)).long
-                        callbacks.forEach {
-                            it(String.format("%016X",idm), String.format("%016X",pmm))
+                    if(buf.remaining() > 6) {
+                        if (buf.get(5).toInt() == 0x14 && buf.get(6).toInt() == 0x01) {
+                            val currentIdm = ByteBuffer.wrap(Arrays.copyOfRange(buf.array(), 7, 15)).long
+                            if (currentIdm == idm)
+                                continue
+                            idm = currentIdm
+                            val pmm = ByteBuffer.wrap(Arrays.copyOfRange(buf.array(), 15, 23)).long
+                            callbacks.forEach {
+                                it(String.format("%016X", idm), String.format("%016X", pmm))
+                            }
                         }
                     }
                     Thread.sleep(interval)
                 }
-            } catch (e:InterruptedException){
-                close()
-            } catch (e:UsbException){
-                close()
+//            } catch (e:InterruptedException){
+//                close()
+//            } catch (e:UsbException){
+//                close()
             } catch (e:Exception){
+                e.printStackTrace()
                 close()
             }
         }
