@@ -1,5 +1,7 @@
 package com.n0n5ense.keylocker
 
+import com.n0n5ense.keylocker.door.DoorController
+import com.n0n5ense.keylocker.felica.FelicaLogger
 import com.n0n5ense.keylocker.model.ColumnLimit
 import com.n0n5ense.keylocker.model.CardTouchLogViewModel
 import com.n0n5ense.keylocker.model.UserModel
@@ -14,7 +16,32 @@ import kotlin.math.min
 
 @RestController
 @RequestMapping("/api")
-class RestApiController @Autowired constructor(val userService: UserService, val cardTouchLogService: CardTouchLogService, val felicaLogger: FelicaLogger) {
+class RestApiController @Autowired constructor(
+    val userService: UserService,
+    val cardTouchLogService: CardTouchLogService,
+    val felicaLogger: FelicaLogger,
+    val doorController: DoorController) {
+
+    @RequestMapping("/door/unlock")
+    fun unlockDoor(): ResponseEntity<String>{
+        doorController.unlock()
+        return ResponseEntity.ok(null)
+    }
+
+    @RequestMapping("/door/lock")
+    fun lockDoor(): ResponseEntity<String>{
+        doorController.lock()
+        return ResponseEntity.ok(null)
+    }
+
+    @GetMapping("/door/status")
+    fun door(): ResponseEntity<Map<String,Boolean>>{
+        val map:HashMap<String,Boolean> = HashMap()
+        map["closed"] = doorController.isClose()
+        map["locked"] = doorController.isLock()
+        return ResponseEntity.ok(map)
+    }
+
 
     @RequestMapping("/start")
     fun start(): ResponseEntity<String>{

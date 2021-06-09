@@ -14,7 +14,7 @@
         <nav class="teal">
             <div class="nav-wrapper">
                 <a href="/userpage" class="brand-logo">Dashboard</a>
-                <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+                <a href="#!" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>
                 <ul class="right">
                     <li>
                         <form method="post" th:action="@{/logout}">
@@ -33,10 +33,6 @@
     </header>
 
     <main>
-        <!--    <p>Hello!!!</p>-->
-        <!--    &lt;!&ndash;/*@thymesVar id="userName" type="java.lang.String"*/&ndash;&gt;-->
-        <!--    <p th:text="|name: ${userName}|"></p>-->
-
         <div class="container">
             <div class="row">
                 <div class="col s12 m6">
@@ -46,22 +42,24 @@
                             <p id="reader_connect">接続されていません</p>
                         </div>
                         <div class="card-action">
-                            <a href="#" onclick="updateReaderStatus()">Refresh</a>
-                            <a href="#" onclick="connectReader()">Connect</a>
-                            <a href="#" onclick="closeReader()">Close</a>
+                            <a href="#!" class="tooltipped" data-tooltip="更新" onclick="updateReaderStatus()"><i class="inline-icon material-icons">refresh</i></a>
+                            <a href="#!" onclick="connectReader()">Connect</a>
+                            <a href="#!" onclick="closeReader()">Close</a>
                         </div>
                     </div>
                 </div>
 
                 <div class="col s12 m6">
-                    <div class="card teal lighten-5">
+                    <div class="card teal lighten-5" id="physical_state_card">
                         <div class="card-content black-text">
                             <span class="card-title">物理状態</span>
-                            <p>ドア:CLOSED</p>
-                            <p>カギ:LOCKED</p>
+                            <p><i class="material-icons inline-icon"><img src="images/door-open.svg" id="door_icon"></i>   <span id="door"></span>   <i id="door_warn" class="inline-icon orange-text text-accent-2 material-icons hide">warning</i></p>
+                            <br>
+                            <p><i class="material-icons inline-icon" id="lock_icon">lock_open</i>   <span id="lock"></span>   <i id="lock_warn" class="inline-icon orange-text text-accent-2 material-icons hide">warning</i></p>
                         </div>
                         <div class="card-action">
-                            <a href="#">Refresh</a>
+                            <a href="#!" class="dropdown-trigger" data-target="dropdown2"><i class="inline-icon material-icons">more_vert</i></a>
+                            <a href="#!" class="tooltipped" data-tooltip="更新" onclick="updatePhysicalState()"><i class="inline-icon material-icons">refresh</i></a>
                         </div>
                     </div>
                 </div>
@@ -74,13 +72,19 @@
                             <p>ｽﾞﾗｰｰ</p>
                         </div>
                         <div class="card-action">
-                            <a href="#">Refresh</a>
+                            <a href="#!" class="tooltipped" data-tooltip="更新"><i class="inline-icon material-icons">refresh</i></a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
+        <ul id='dropdown2' class='dropdown-content'>
+            <li><a href="#!">解錠</a></li>
+            <li><a href="#!">施錠</a></li>
+            <li><a href="#!"><i class="material-icons">view_module</i>four</a></li>
+            <li><a href="#!"><i class="material-icons">cloud</i>five</a></li>
+        </ul>
 
     </main>
 
@@ -90,8 +94,12 @@
     <script type="text/javascript" src="js/helper.js"></script>
     <script type="text/javascript">
         $(document).ready(function(){
-            $('.sidenav').sidenav();
             updateReaderStatus(true);
+            updatePhysicalState(true);
+            $('.sidenav').sidenav();
+            $('.tooltipped').tooltip();
+            $('.dropdown-trigger').dropdown();
+            startPhysicalAutoUpdate();
         });
 
         function updateReaderStatus(flag=null){
@@ -150,6 +158,71 @@
             .always(()=>{
                 updateReaderStatus(true);
             });
+        }
+
+
+        let physicalUpdateHandle = null;
+        function startPhysicalAutoUpdate(){
+            if(physicalUpdateHandle==null)
+                physicalUpdateHandle = setInterval(()=>{
+                    updatePhysicalState(true);
+                },2500);
+        }
+
+        function stopPhysicalAutoUpdate(){
+            if(physicalUpdateHandle != null)
+                clearInterval(physicalUpdateHandle);
+            physicalUpdateHandle = null;
+        }
+
+        function updatePhysicalState(flag=null){
+            $.get({
+                url: 'api/door/status',
+                dataType: 'json',
+                timeout: 5000,
+            })
+            .done((data)=>{
+                updatePhysicalStateTable(data);
+                if(flag==null)
+                    toast("更新しました");
+            })
+            .fail(()=>{
+                if(flag==null)
+                    errorToast('取得に失敗しました');
+                $('#physical_state_card').attr('class','card deep-orange lighten-5')
+            });
+        }
+
+        function updatePhysicalStateTable(data){
+            const closed=data['closed']
+            const locked=data['locked']
+            const door_icon = $('#door_icon');
+            if(closed===true){
+                if(door_icon.attr('src')!=="images/door-close.svg")
+                    door_icon.attr('src',"images/door-close.svg");
+                $('#door_warn').addClass('hide');
+                $('#door').text("Closed");
+            }else{
+                if(door_icon.attr('src')!=="images/door-open.svg")
+                    door_icon.attr('src',"images/door-open.svg");
+                $('#door_warn').removeClass('hide');
+                $('#door').text("Opened");
+            }
+            if(locked===true){
+                $('#lock_icon').text("lock")
+                $('#lock_warn').addClass('hide');
+                $('#lock').text("Locked");
+            }else{
+                $('#lock_icon').text("lock_open")
+                $('#lock_warn').removeClass('hide');
+                $('#lock').text("Unlocked");
+            }
+
+            if(closed===true&&locked===true){
+                $('#physical_state_card').attr('class','card teal lighten-5')
+            } else {
+                $('#physical_state_card').attr('class','card deep-orange lighten-5')
+            }
         }
 
     </script>

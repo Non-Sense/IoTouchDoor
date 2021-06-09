@@ -25,6 +25,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.session:spring-session-core")
 	implementation("org.springframework.session:spring-session-jdbc")
+	annotationProcessor ("org.springframework.boot:spring-boot-configuration-processor")
 	implementation("org.xerial","sqlite-jdbc","3.34.0")
 	implementation("org.usb4java","usb4java","1.3.0")
 	implementation("org.usb4java","usb4java-javax","1.3.0")
@@ -43,4 +44,8 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+tasks.getByName<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+	sourceResources(sourceSets["main"])
 }
