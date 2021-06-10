@@ -37,8 +37,10 @@ class RestApiController @Autowired constructor(
     @GetMapping("/door/status")
     fun door(): ResponseEntity<Map<String,Boolean>>{
         val map:HashMap<String,Boolean> = HashMap()
-        map["closed"] = doorController.isClose()
-        map["locked"] = doorController.isLock()
+        val status = doorController.getStatus()
+        map["active"] = status != null
+        map["closed"] = status?.isClose == true
+        map["locked"] = status?.isLock == true
         return ResponseEntity.ok(map)
     }
 

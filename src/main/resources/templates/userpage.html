@@ -80,8 +80,8 @@
         </div>
 
         <ul id='dropdown2' class='dropdown-content'>
-            <li><a href="#!">解錠</a></li>
-            <li><a href="#!">施錠</a></li>
+            <li><a href="#!" onclick="unlock()">解錠</a></li>
+            <li><a href="#!" onclick="lock()">施錠</a></li>
             <li><a href="#!"><i class="material-icons">view_module</i>four</a></li>
             <li><a href="#!"><i class="material-icons">cloud</i>five</a></li>
         </ul>
@@ -175,6 +175,64 @@
             physicalUpdateHandle = null;
         }
 
+        function lock(){
+            $.ajax({
+                url: 'api/door/lock',
+                dataType: 'json',
+                method: 'POST',
+                contentType: 'application/json',
+                timeout: 5000,
+                headers:{
+                    "[[${_csrf.headerName}]]":"[[${_csrf.token}]]"
+                }
+            })
+            .done(()=>{
+            })
+            .fail((xhr)=>{
+                console.log(xhr)
+                switch (xhr.status){
+                    case 200:
+                        break;
+                    case 400:
+                        errorToast("リクエストが不正です");
+                        break;
+                    default:
+                        errorToast('編集に失敗しました');
+                }
+            })
+            .always(()=>{
+            })
+        }
+
+        function unlock(){
+            $.ajax({
+                url: 'api/door/unlock',
+                dataType: 'json',
+                method: 'POST',
+                contentType: 'application/json',
+                timeout: 5000,
+                headers:{
+                    "[[${_csrf.headerName}]]":"[[${_csrf.token}]]"
+                }
+            })
+                .done(()=>{
+                })
+                .fail((xhr)=>{
+                    console.log(xhr)
+                    switch (xhr.status){
+                        case 200:
+                            break;
+                        case 400:
+                            errorToast("リクエストが不正です");
+                            break;
+                        default:
+                            errorToast('編集に失敗しました');
+                    }
+                })
+                .always(()=>{
+                })
+        }
+
         function updatePhysicalState(flag=null){
             $.get({
                 url: 'api/door/status',
@@ -196,6 +254,7 @@
         function updatePhysicalStateTable(data){
             const closed=data['closed']
             const locked=data['locked']
+            const active=data['active']
             const door_icon = $('#door_icon');
             if(closed===true){
                 if(door_icon.attr('src')!=="images/door-close.svg")
@@ -216,6 +275,10 @@
                 $('#lock_icon').text("lock_open")
                 $('#lock_warn').removeClass('hide');
                 $('#lock').text("Unlocked");
+            }
+            if(active===false){
+                $('#door').text("???");
+                $('#lock').text("???");
             }
 
             if(closed===true&&locked===true){
