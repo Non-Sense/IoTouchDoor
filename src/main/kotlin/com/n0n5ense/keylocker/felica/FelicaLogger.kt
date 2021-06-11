@@ -1,5 +1,6 @@
 package com.n0n5ense.keylocker.felica
 
+import com.n0n5ense.keylocker.door.DoorController
 import com.n0n5ense.keylocker.model.CardTouchLogModel
 import com.n0n5ense.keylocker.service.CardTouchLogService
 import com.n0n5ense.keylocker.service.UserService
@@ -15,7 +16,10 @@ import java.util.logging.Logger
 import javax.annotation.PreDestroy
 
 @Component
-class FelicaLogger @Autowired constructor(val userService: UserService, val cardTouchLogService: CardTouchLogService):ApplicationListener<ContextClosedEvent>{
+class FelicaLogger @Autowired constructor(
+        val userService: UserService,
+        val cardTouchLogService: CardTouchLogService,
+        val doorController: DoorController):ApplicationListener<ContextClosedEvent>{
     var reader:FelicaReader? = null
 
     init {
@@ -65,6 +69,9 @@ class FelicaLogger @Autowired constructor(val userService: UserService, val card
         userService.select(idm).let {
             if(it?.enabled == true)
                 accept = true
+        }
+        if(accept){
+            doorController.unlock()
         }
         cardTouchLogService.insert(CardTouchLogModel(cardId = idm, time = ZonedDateTime.now(),accept = accept))
     }
