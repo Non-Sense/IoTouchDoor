@@ -80,10 +80,8 @@
         </div>
 
         <ul id='dropdown2' class='dropdown-content'>
-            <li><a href="#!" onclick="unlock()">解錠</a></li>
-            <li><a href="#!" onclick="lock()">施錠</a></li>
-            <li><a href="#!"><i class="material-icons">view_module</i>four</a></li>
-            <li><a href="#!"><i class="material-icons">cloud</i>five</a></li>
+            <li><a href="#!" onclick="unlock()">UNLOCK</a></li>
+            <li><a href="#!" onclick="lock()">LOCK</a></li>
         </ul>
 
     </main>
@@ -189,7 +187,6 @@
             .done(()=>{
             })
             .fail((xhr)=>{
-                console.log(xhr)
                 switch (xhr.status){
                     case 200:
                         break;
@@ -197,7 +194,7 @@
                         errorToast("リクエストが不正です");
                         break;
                     default:
-                        errorToast('編集に失敗しました');
+                        errorToast('操作に失敗しました');
                 }
             })
             .always(()=>{
@@ -218,7 +215,6 @@
                 .done(()=>{
                 })
                 .fail((xhr)=>{
-                    console.log(xhr)
                     switch (xhr.status){
                         case 200:
                             break;
@@ -226,7 +222,7 @@
                             errorToast("リクエストが不正です");
                             break;
                         default:
-                            errorToast('編集に失敗しました');
+                            errorToast('操作に失敗しました');
                     }
                 })
                 .always(()=>{
