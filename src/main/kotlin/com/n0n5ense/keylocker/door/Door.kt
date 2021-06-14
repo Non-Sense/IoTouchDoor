@@ -1,7 +1,6 @@
 package com.n0n5ense.keylocker.door
 
 import java.io.*
-import java.net.ServerSocket
 import java.net.Socket
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
@@ -14,8 +13,8 @@ abstract class Door {
 
     companion object{
         private const val AUTO_LOCK_TIME: Long = 1000L*10L
-        private const val LOCK_TIME: Long = 1000L*2L
-        private const val POLLING_INTERVAL: Long = 500L
+        private const val LOCK_TIME: Long = 1000L*3L
+        private const val POLLING_INTERVAL: Long = 100L
     }
 
     private var executor: ScheduledExecutorService? = null
@@ -50,12 +49,16 @@ abstract class Door {
 //                "polling bl:$beforeIsLock bc:$beforeIsClose l:$isLock c:$isClose at:${currentTime-lastUnlockTime > AUTO_LOCK_TIME} lt:${currentTime-lastCloseTime > LOCK_TIME} op:$openFlag ll:$lockOnLongClose")
             // on unlock
             if (!isLock && beforeIsLock) {
+                Logger.getLogger("Door").info("- unlock")
                 lastUnlockTime = currentTime
-                openFlag = false
-                lockOnLongClose = true
+                if(isClose) {
+                    openFlag = false
+                    lockOnLongClose = true
+                }
             }
             // on open
             if (!isClose && beforeIsClose) {
+                Logger.getLogger("Door").info("- open")
                 lockOnLongClose = false
                 openFlag = true
             }
@@ -64,9 +67,11 @@ abstract class Door {
             }
             if (isClose && lockOnLongClose && (currentTime - lastUnlockTime > AUTO_LOCK_TIME)) {
                 lockOnLongClose = false
+                Logger.getLogger("Door").info("- longClose")
                 lock()
             }
             if (!isLock && openFlag && (currentTime - lastCloseTime > LOCK_TIME)) {
+                Logger.getLogger("Door").info("- afterClose")
                 lock()
                 openFlag = false
             }
@@ -120,7 +125,7 @@ class RealDoor(private val host:String, private val port:Int): Door(){
         try {
             socket = Socket(host, port)
         } catch (e:IOException){
-            Logger.getLogger("Door").warning("ConnectError")
+            Logger.getLogger("Door").warning("ConnectError $e")
             disconnect()
             return
         }
