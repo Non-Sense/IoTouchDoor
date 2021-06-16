@@ -40,43 +40,46 @@ abstract class Door {
             lastUnlockTime = it
         }
 
-        return {
-            val status = getStatus()
-            val isLock = status?.isLock == true
-            val isClose = status?.isClose == true
-            val currentTime = System.currentTimeMillis()
+        return mark@{
+            try {
+                val status = getStatus()?:return@mark
+                val isLock = status.isLock
+                val isClose = status.isClose
+                val currentTime = System.currentTimeMillis()
 //            Logger.getLogger("Door").info(
 //                "polling bl:$beforeIsLock bc:$beforeIsClose l:$isLock c:$isClose at:${currentTime-lastUnlockTime > AUTO_LOCK_TIME} lt:${currentTime-lastCloseTime > LOCK_TIME} op:$openFlag ll:$lockOnLongClose")
-            // on unlock
-            if (!isLock && beforeIsLock) {
-                Logger.getLogger("Door").info("- unlock")
-                lastUnlockTime = currentTime
-                if(isClose) {
-                    openFlag = false
-                    lockOnLongClose = true
+                // on unlock
+                if (!isLock && beforeIsLock) {
+                    Logger.getLogger("Door").info("- unlock")
+                    lastUnlockTime = currentTime
+                    if (isClose) {
+                        openFlag = false
+                        lockOnLongClose = true
+                    }
                 }
+                // on open
+                if (!isClose && beforeIsClose) {
+                    Logger.getLogger("Door").info("- open")
+                    lockOnLongClose = false
+                    openFlag = true
+                }
+                if (!isClose) {
+                    lastCloseTime = currentTime
+                }
+                if (isClose && lockOnLongClose && (currentTime - lastUnlockTime > AUTO_LOCK_TIME)) {
+                    lockOnLongClose = false
+                    Logger.getLogger("Door").info("- longClose")
+                    lock()
+                }
+                if (!isLock && openFlag && (currentTime - lastCloseTime > LOCK_TIME)) {
+                    Logger.getLogger("Door").info("- afterClose")
+                    lock()
+                    openFlag = false
+                }
+                beforeIsLock = isLock
+                beforeIsClose = isClose
+            }catch (e:Exception){
             }
-            // on open
-            if (!isClose && beforeIsClose) {
-                Logger.getLogger("Door").info("- open")
-                lockOnLongClose = false
-                openFlag = true
-            }
-            if (!isClose) {
-                lastCloseTime = currentTime
-            }
-            if (isClose && lockOnLongClose && (currentTime - lastUnlockTime > AUTO_LOCK_TIME)) {
-                lockOnLongClose = false
-                Logger.getLogger("Door").info("- longClose")
-                lock()
-            }
-            if (!isLock && openFlag && (currentTime - lastCloseTime > LOCK_TIME)) {
-                Logger.getLogger("Door").info("- afterClose")
-                lock()
-                openFlag = false
-            }
-            beforeIsLock = isLock
-            beforeIsClose = isClose
         }
     }
     fun enableAutoLock(){
@@ -121,11 +124,21 @@ class RealDoor(private val host:String, private val port:Int): Door(){
     private var reader:DataInputStream? = null
     private var writer:DataOutputStream? = null
 
+    companion object{
+        private const val RETRY_COUNT = 3
+    }
+
     private fun connect(){
         try {
             socket = Socket(host, port)
+            socket?.soTimeout = 100
         } catch (e:IOException){
             Logger.getLogger("Door").warning("ConnectError $e")
+            disconnect()
+            return
+        }
+        if(socket==null){
+            Logger.getLogger("Door").warning("ConnectError: socket == null")
             disconnect()
             return
         }
@@ -134,7 +147,11 @@ class RealDoor(private val host:String, private val port:Int): Door(){
     }
 
     private fun disconnect(){
-        socket?.close()
+        try {
+            socket?.close()
+        }catch (e:Exception){
+            Logger.getLogger("Door").warning("DisconnectError $e")
+        }
         reader = null
         writer = null
         socket = null
@@ -147,27 +164,39 @@ class RealDoor(private val host:String, private val port:Int): Door(){
     }
 
     override fun unlock() {
-        Logger.getLogger("Door").info("unlock")
-        try {
-            connect()
-            writer?.write(Command.UNLOCK.v)
-        } catch (e:IOException){
-            Logger.getLogger("Door").warning("IOException: unlock")
+        for(i in 1..RETRY_COUNT) {
+            Logger.getLogger("Door").info("unlock")
+            try {
+                connect()
+                writer?:continue
+                writer?.write(Command.UNLOCK.v)
+            } catch (e: IOException) {
+                disconnect()
+                Logger.getLogger("Door").warning("IOException: unlock")
+                continue
+            }
+            disconnect()
+            break
         }
-        disconnect()
     }
 
     override fun lock() {
-        Logger.getLogger("Door").info("lock")
-        if(getStatus()?.isLock == true)
-            return
-        try{
-            connect()
-            writer?.write(Command.LOCK.v)
-        } catch (e:IOException){
-            Logger.getLogger("Door").warning("IOException: lock")
+        for(i in 1..RETRY_COUNT) {
+            Logger.getLogger("Door").info("lock")
+            if (getStatus()?.isLock == true)
+                return
+            try {
+                connect()
+                writer?:continue
+                writer?.write(Command.LOCK.v)
+            } catch (e: IOException) {
+                disconnect()
+                Logger.getLogger("Door").warning("IOException: lock")
+                continue
+            }
+            disconnect()
+            break
         }
-        disconnect()
     }
 
     override fun getStatus(): DoorStatus? {
