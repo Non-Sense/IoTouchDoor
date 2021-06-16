@@ -17,10 +17,14 @@ import kotlin.math.min
 @RestController
 @RequestMapping("/api")
 class RestApiController @Autowired constructor(
-    val userService: UserService,
-    val cardTouchLogService: CardTouchLogService,
-    val felicaLogger: FelicaLogger,
-    val doorController: DoorController) {
+    private val userService: UserService,
+    private val cardTouchLogService: CardTouchLogService,
+    private val felicaLogger: FelicaLogger,
+    private val doorController: DoorController) {
+
+    init {
+        felicaLogger.init()
+    }
 
     @RequestMapping("/door/unlock")
     fun unlockDoor(): ResponseEntity<String>{
