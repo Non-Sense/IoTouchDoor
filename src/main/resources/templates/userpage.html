@@ -58,8 +58,9 @@
                             <p><i class="material-icons inline-icon" id="lock_icon">lock_open</i>   <span id="lock"></span>   <i id="lock_warn" class="inline-icon orange-text text-accent-2 material-icons hide">warning</i></p>
                         </div>
                         <div class="card-action">
-                            <a href="#!" class="dropdown-trigger" data-target="dropdown2"><i class="inline-icon material-icons">more_vert</i></a>
                             <a href="#!" class="tooltipped" data-tooltip="更新" onclick="updatePhysicalState()"><i class="inline-icon material-icons">refresh</i></a>
+                            <a href="#!" onclick="unlock()">UNLOCK</a>
+                            <a href="#!" onclick="lock()">LOCK</a>
                         </div>
                     </div>
                 </div>
@@ -68,36 +69,44 @@
                 <div class="col s12 m6">
                     <div class="card teal lighten-5">
                         <div class="card-content black-text">
-                            <span class="card-title">ちっちゃいタッチログ入れたい</span>
-                            <p>ｽﾞﾗｰｰ</p>
+                            <span class="card-title">タッチログ</span>
+                            <table class="highlight">
+                                <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Time</th>
+                                    <th>Accept</th>
+                                </tr>
+                                </thead>
+                                <tbody id="logTable">
+                                </tbody>
+                            </table>
                         </div>
                         <div class="card-action">
-                            <a href="#!" class="tooltipped" data-tooltip="更新"><i class="inline-icon material-icons">refresh</i></a>
+                            <a href="#!" class="tooltipped" data-tooltip="更新" onclick="getLogTable()"><i class="inline-icon material-icons">refresh</i></a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <ul id='dropdown2' class='dropdown-content'>
-            <li><a href="#!" onclick="unlock()">UNLOCK</a></li>
-            <li><a href="#!" onclick="lock()">LOCK</a></li>
-        </ul>
-
     </main>
 
 
     <script type="text/javascript" src="js/jquery.min.js"></script>
     <script type="text/javascript" src="js/materialize.min.js"></script>
+    <script type="text/javascript" src="js/moment.min.js"></script>
     <script type="text/javascript" src="js/helper.js"></script>
     <script type="text/javascript">
         $(document).ready(function(){
             updateReaderStatus(true);
             updatePhysicalState(true);
+            getLogTable();
             $('.sidenav').sidenav();
             $('.tooltipped').tooltip();
             $('.dropdown-trigger').dropdown();
             startPhysicalAutoUpdate();
+            startLogAutoUpdate();
         });
 
         function updateReaderStatus(flag=null){
@@ -149,7 +158,6 @@
                 dataType: 'json',
                 timeout: 5000,
             })
-            .done(()=>{})
             .fail(()=>{
                 errorToast('接続解除に失敗しました');
             })
@@ -172,10 +180,9 @@
                 clearInterval(physicalUpdateHandle);
             physicalUpdateHandle = null;
         }
-
-        function lock(){
+        function post(uri){
             $.ajax({
-                url: 'api/door/lock',
+                url: uri,
                 dataType: 'json',
                 method: 'POST',
                 contentType: 'application/json',
@@ -183,8 +190,6 @@
                 headers:{
                     "[[${_csrf.headerName}]]":"[[${_csrf.token}]]"
                 }
-            })
-            .done(()=>{
             })
             .fail((xhr)=>{
                 switch (xhr.status){
@@ -197,36 +202,14 @@
                         errorToast('操作に失敗しました');
                 }
             })
-            .always(()=>{
-            })
+        }
+
+        function lock(){
+            post('api/door/lock');
         }
 
         function unlock(){
-            $.ajax({
-                url: 'api/door/unlock',
-                dataType: 'json',
-                method: 'POST',
-                contentType: 'application/json',
-                timeout: 5000,
-                headers:{
-                    "[[${_csrf.headerName}]]":"[[${_csrf.token}]]"
-                }
-            })
-                .done(()=>{
-                })
-                .fail((xhr)=>{
-                    switch (xhr.status){
-                        case 200:
-                            break;
-                        case 400:
-                            errorToast("リクエストが不正です");
-                            break;
-                        default:
-                            errorToast('操作に失敗しました');
-                    }
-                })
-                .always(()=>{
-                })
+            post('api/door/unlock');
         }
 
         function updatePhysicalState(flag=null){
@@ -282,6 +265,57 @@
             } else {
                 $('#physical_state_card').attr('class','card deep-orange lighten-5')
             }
+        }
+
+
+        function getLogTable(){
+            $.get({
+                url: 'api/logs?l=4',
+                dataType: 'json',
+                timeout: 5000,
+            })
+                .done(logDataUpdate)
+                .fail(()=>{
+                    errorToast('取得に失敗しました');
+                })
+                .always(()=>{
+                    $('#logProgress').attr('class','invisible')
+                });
+        }
+
+        function logDataUpdate(data){
+            const table = $('#logTable')
+            table.find('tr').remove()
+            for(const elm of data){
+                const time = moment(elm['time'])
+                const tr = $('<tr />');
+                tr.append($('<td />').attr('class','hide').text(elm['id']))
+                if(elm['name'] == null && !elm['accept']){
+                    tr.append($('<td />').append($('<a />').attr('href','/cardedit?id='+elm['cardId']).text('Add this')));
+                } else {
+                    tr.append($('<td />').text(elm['name']));
+                }
+                tr.append($('<td />').text(dateToString(time)));
+                if(elm['accept']){
+                    tr.append($('<td />').append($('<i />').attr('class','material-icons teal-text text-accent-4').text('check')));
+                }else{
+                    tr.append($('<td />').append($('<i />').attr('class','material-icons red-text text-accent-4').text('close')));
+                }
+
+                table.append(tr)
+            }
+        }
+
+        function dateToString(moment){
+            return  moment.format("MM-DD HH:mm");
+        }
+
+        let logUpdateHandle = null;
+        function startLogAutoUpdate(){
+            if(logUpdateHandle==null)
+                logUpdateHandle = setInterval(()=>{
+                    getLogTable();
+                },5000);
         }
 
     </script>
