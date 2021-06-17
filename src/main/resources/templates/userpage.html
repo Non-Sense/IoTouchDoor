@@ -28,6 +28,7 @@
         <ul id="slide-out" class="sidenav sidenav-fixed">
             <li><a href="/userpage">Dash Board<i class="material-icons left">dashboard</i></a></li>
             <li><a href="/touchlog">Touch Log<i class="material-icons left">dvr</i></a></li>
+            <li><a href="/physicallog">Physical Log<i class="material-icons left">fitness_center</i></a></li>
             <li><a href="/cardedit">Card Management<i class="material-icons left">credit_card</i></a></li>
         </ul>
     </header>
@@ -87,6 +88,26 @@
                         </div>
                     </div>
                 </div>
+                <div class="col s12 m6">
+                    <div class="card teal lighten-5">
+                        <div class="card-content black-text">
+                            <span class="card-title">物理ログ</span>
+                            <table class="highlight">
+                                <thead>
+                                <tr>
+                                    <th>Action</th>
+                                    <th>Time</th>
+                                </tr>
+                                </thead>
+                                <tbody id="plogTable">
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="card-action">
+                            <a href="#!" class="tooltipped" data-tooltip="更新" onclick="getPlogTable()"><i class="inline-icon material-icons">refresh</i></a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -101,12 +122,14 @@
         $(document).ready(function(){
             updateReaderStatus(true);
             updatePhysicalState(true);
-            getLogTable();
+            getPlogTable(true);
+            getLogTable(true);
             $('.sidenav').sidenav();
             $('.tooltipped').tooltip();
             $('.dropdown-trigger').dropdown();
             startPhysicalAutoUpdate();
             startLogAutoUpdate();
+            startPlogAutoUpdate();
         });
 
         function updateReaderStatus(flag=null){
@@ -268,15 +291,20 @@
         }
 
 
-        function getLogTable(){
+        function getLogTable(flag=null){
             $.get({
-                url: 'api/logs?l=4',
+                url: 'api/logs?l=5',
                 dataType: 'json',
                 timeout: 5000,
             })
-                .done(logDataUpdate)
+                .done((data)=>{
+                    logDataUpdate(data)
+                    if(flag==null)
+                        toast("更新しました");
+                })
                 .fail(()=>{
-                    errorToast('取得に失敗しました');
+                    if(flag==null)
+                        errorToast('取得に失敗しました');
                 })
                 .always(()=>{
                     $('#logProgress').attr('class','invisible')
@@ -306,15 +334,60 @@
             }
         }
 
+        function getPlogTable(flag=null){
+            $.get({
+                url: 'api/physicallogs?l=5',
+                dataType: 'json',
+                timeout: 5000,
+            })
+                .done((data)=> {
+                    plogDataUpdate(data)
+                    if(flag==null)
+                        toast("更新しました");
+                })
+                .fail(()=>{
+                    if(flag==null)
+                        errorToast('取得に失敗しました');
+                })
+                .always(()=>{
+                    $('#logProgress').attr('class','invisible')
+                });
+        }
+
+        function plogDataUpdate(data){
+            const table = $('#plogTable')
+            table.find('tr').remove()
+            for(const elm of data){
+                const time = moment(elm['time'])
+                const tr = $('<tr />');
+                tr.append($('<td />').attr('class','hide').text(elm['id']));
+                tr.append($('<td />').text(elm['action']));
+                tr.append($('<td />').text(dateToStringSec(time)));
+
+                table.append(tr)
+            }
+        }
+
         function dateToString(moment){
             return  moment.format("MM-DD HH:mm");
         }
+        function dateToStringSec(moment){
+            return  moment.format("MM-DD HH:mm:ss");
+        }
+
 
         let logUpdateHandle = null;
         function startLogAutoUpdate(){
             if(logUpdateHandle==null)
                 logUpdateHandle = setInterval(()=>{
-                    getLogTable();
+                    getLogTable(true);
+                },5000);
+        }
+        let plogUpdateHandle = null;
+        function startPlogAutoUpdate(){
+            if(plogUpdateHandle==null)
+                plogUpdateHandle = setInterval(()=>{
+                    getPlogTable(true);
                 },5000);
         }
 

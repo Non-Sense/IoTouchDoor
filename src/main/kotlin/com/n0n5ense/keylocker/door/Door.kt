@@ -23,6 +23,11 @@ abstract class Door {
         enableAutoLock()
     }
 
+    var onLock: (()->Unit)? = null
+    var onUnlock: (()->Unit)? = null
+    var onClose: (()->Unit)? = null
+    var onOpen: (()->Unit)? = null
+
     abstract fun unlock()
     abstract fun lock()
     abstract fun getStatus(): DoorStatus?
@@ -53,13 +58,21 @@ abstract class Door {
                     Logger.getLogger("Door").info("- unlock")
                     lastUnlockTime = currentTime
                     if (isClose) {
+                        onUnlock?.invoke()
                         openFlag = false
                         lockOnLongClose = true
                     }
                 }
+                // on lock
+                if(isLock && !beforeIsLock)
+                    onLock?.invoke()
+                // on close
+                if(isClose && !beforeIsClose)
+                    onClose?.invoke()
                 // on open
                 if (!isClose && beforeIsClose) {
                     Logger.getLogger("Door").info("- open")
+                    onOpen?.invoke()
                     lockOnLongClose = false
                     openFlag = true
                 }

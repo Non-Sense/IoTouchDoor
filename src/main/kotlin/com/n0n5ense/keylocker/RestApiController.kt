@@ -4,8 +4,10 @@ import com.n0n5ense.keylocker.door.DoorController
 import com.n0n5ense.keylocker.felica.FelicaLogger
 import com.n0n5ense.keylocker.model.ColumnLimit
 import com.n0n5ense.keylocker.model.CardTouchLogViewModel
+import com.n0n5ense.keylocker.model.PhysicalLogModel
 import com.n0n5ense.keylocker.model.UserModel
 import com.n0n5ense.keylocker.service.CardTouchLogService
+import com.n0n5ense.keylocker.service.PhysicalLogService
 import org.springframework.beans.factory.annotation.Autowired
 import com.n0n5ense.keylocker.service.UserService
 import org.springframework.http.HttpStatus
@@ -19,6 +21,7 @@ import kotlin.math.min
 class RestApiController @Autowired constructor(
     private val userService: UserService,
     private val cardTouchLogService: CardTouchLogService,
+    private val physicalLogService: PhysicalLogService,
     private val felicaLogger: FelicaLogger,
     private val doorController: DoorController) {
 
@@ -118,5 +121,11 @@ class RestApiController @Autowired constructor(
     fun addTouchLog(@RequestParam(name="l",required=false) limit: Int?, @RequestParam(name="o",required=false) offset:Int?): ResponseEntity<List<CardTouchLogViewModel>>{
         val l = min(limit?:30,100)
         return ResponseEntity.ok(cardTouchLogService.selectAll(ColumnLimit(l,offset?:0)))
+    }
+
+    @GetMapping("/physicallogs")
+    fun getPhysicalLog(@RequestParam(name="l",required=false) limit: Int?, @RequestParam(name="o",required=false) offset:Int?): ResponseEntity<List<PhysicalLogModel>>{
+        val l = min(limit?:30,100)
+        return ResponseEntity.ok(physicalLogService.selectAll(ColumnLimit(l,offset?:0)))
     }
 }
