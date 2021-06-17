@@ -8,7 +8,18 @@ import org.springframework.web.bind.annotation.RequestMapping
 @Controller
 @RequestMapping("/")
 class AppController {
-    @RequestMapping("/userpage")
+
+    @RequestMapping()
+    fun redirect(): String{
+        return "redirect:userpage"
+    }
+
+    @RequestMapping("index")
+    fun redirect2(): String{
+        return "redirect:userpage"
+    }
+
+    @RequestMapping("userpage")
     fun userPage(model: Model){
         val auth = SecurityContextHolder.getContext().authentication
         val name = auth.name
@@ -16,11 +27,11 @@ class AppController {
         return
     }
 
-    @RequestMapping("/touchlog")
+    @RequestMapping("touchlog")
     fun touchLog(model: Model){
     }
 
-    @RequestMapping("/cardedit")
+    @RequestMapping("cardedit")
     fun cardEdit(model: Model){
     }
 }
